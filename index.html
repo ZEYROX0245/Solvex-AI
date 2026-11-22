@@ -4,296 +4,418 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Solvex</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#fff;--side:#f9f9f9;--line:#e5e5e5;--user:#f4f4f4;--text:#0d0d0d;--muted:#6b6b6b;--hover:#ececec}
+:root{--line:#e5e5e5;--side:#f9f9f9;--gray:#f4f4f4;--hover:#ececec;--muted:#6b6b6b;--red:#e53935}
 html,body{height:100%}
-body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;overflow:hidden;-webkit-font-smoothing:antialiased}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#fff;color:#0d0d0d;display:flex;overflow:hidden;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
-:focus-visible{outline:2px solid #0d0d0d;outline-offset:2px}
-
-/* Logo */
+button:focus-visible,textarea:focus-visible{outline:2px solid #0d0d0d;outline-offset:2px}
+[hidden]{display:none!important}
+svg{display:block}
 .logo{display:grid;place-items:center;background:#0d0d0d;color:#fff;font-weight:600;border-radius:50%;flex:none}
 .logo.sm{width:28px;height:28px;font-size:14px}
-.logo.lg{width:56px;height:56px;font-size:28px}
 
-/* Sidebar */
-#sidebar{width:260px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:12px;flex:none;z-index:30;transition:transform .25s ease}
-#newChat{display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px;font-weight:500;transition:background .15s}
-#newChat:hover{background:var(--hover)}
-#list{flex:1;overflow-y:auto;margin:14px -4px;padding:0 4px;display:flex;flex-direction:column;gap:2px}
-.item{display:flex;align-items:center;gap:4px;border-radius:8px;padding:0 4px 0 12px;cursor:pointer;min-height:38px}
+/* Barre latérale */
+#sidebar{width:260px;flex:none;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:10px;z-index:30;transition:margin-left .25s ease}
+body:not(.sb-open) #sidebar{margin-left:-260px}
+#newChat{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:10px;font-size:14px;font-weight:500}
+#newChat:hover,.ib:hover{background:var(--hover)}
+#list{flex:1;overflow-y:auto;margin-top:10px}
+.grp{font-size:12px;font-weight:600;color:var(--muted);padding:14px 12px 6px}
+.item{display:flex;align-items:center;border-radius:10px;padding-left:12px;cursor:pointer;min-height:38px}
 .item:hover,.item.active{background:var(--hover)}
 .item .t{flex:1;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:9px 0}
-.item .del{width:28px;height:28px;border-radius:6px;color:var(--muted);opacity:0;font-size:16px;line-height:1}
-.item:hover .del,.item.active .del{opacity:1}
-.item .del:hover{background:#ddd;color:#c62828}
-.empty-list{font-size:13px;color:var(--muted);padding:8px 12px}
-.brand{display:flex;align-items:center;gap:10px;padding:12px 8px 4px;border-top:1px solid var(--line);font-weight:600;font-size:15px}
+.ren{flex:1;min-width:0;font:inherit;font-size:14px;border:1px solid #bbb;border-radius:6px;padding:5px 7px;margin:3px 6px 3px 0;outline:0}
+.more{width:30px;height:30px;border-radius:8px;opacity:0;font-size:18px;letter-spacing:1px;color:var(--muted);margin-right:4px}
+.item:hover .more,.item.active .more,.more:focus-visible{opacity:1}
+.more:hover{background:#ddd}
+.nolist{font-size:13px;color:var(--muted);padding:10px 12px}
+.me{display:flex;align-items:center;gap:10px;padding:12px 8px 4px;border-top:1px solid var(--line);font-size:14px;font-weight:500}
+#menu{position:fixed;z-index:60;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:5px;min-width:160px}
+#menu button{display:block;width:100%;text-align:left;padding:9px 12px;border-radius:8px;font-size:14px}
+#menu button:hover{background:var(--gray)}
+#mDel{color:#c62828}
 #overlay{display:none}
 
-/* Main */
-main{flex:1;min-width:0;display:flex;flex-direction:column;height:100%;height:100dvh}
-.topbar{display:none;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line)}
-#menuBtn{width:38px;height:38px;border-radius:8px;font-size:20px}
-#menuBtn:hover{background:var(--hover)}
-.topbar b{font-weight:600}
-#chat{flex:1;overflow-y:auto;position:relative}
-.col{max-width:768px;margin:0 auto;padding:24px 20px}
-
-/* Accueil */
-#welcome{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:28px;text-align:center}
-#welcome h1{font-size:28px;font-weight:600;letter-spacing:-.01em}
-.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%;max-width:640px}
-.card{text-align:left;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.4;transition:background .15s}
-.card:hover{background:var(--side)}
-.card small{display:block;color:var(--muted);margin-top:2px;font-size:13px}
+/* Zone principale */
+main{flex:1;min-width:0;height:100dvh;display:flex;flex-direction:column}
+.top{height:56px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+.top .l{display:flex;align-items:center;gap:4px}
+.ib{width:40px;height:40px;border-radius:10px;display:grid;place-items:center}
+.rel{position:relative}
+#model{padding:8px 12px;border-radius:10px;font-size:17px;font-weight:500}
+#model:hover{background:var(--hover)}
+#model span{color:var(--muted);font-size:13px}
+#tip{position:absolute;top:46px;left:0;white-space:nowrap;background:#0d0d0d;color:#fff;font-size:13px;padding:8px 12px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:20}
+#voiceBtn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:500;transition:background .15s}
+#voiceBtn:hover{background:var(--gray)}
+#voiceBtn.on{background:#0d0d0d;border-color:#0d0d0d;color:#fff}
+#stage{flex:1;min-height:0;display:flex;flex-direction:column}
+#chat{flex:1;overflow-y:auto}
+.col{max-width:768px;margin:0 auto;padding:16px 20px 8px}
+#hero,#pills{display:none}
+#hero{text-align:center;font-size:28px;font-weight:600;letter-spacing:-.01em;padding:0 20px 24px}
+body.home #chat{display:none}
+body.home #stage{justify-content:center;padding-bottom:8vh}
+body.home #hero{display:block}
+body.home #pills{display:flex}
+body.home .note{display:none}
+#pills{flex-wrap:wrap;justify-content:center;gap:8px;max-width:768px;margin:16px auto 0;padding:0 20px}
+.sug{border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:14px;transition:background .15s}
+.sug:hover{background:var(--gray)}
 
 /* Messages */
 .msg{display:flex;gap:14px;margin-bottom:28px}
 .msg.user{justify-content:flex-end}
-.bubble{background:var(--user);padding:10px 18px;border-radius:20px;max-width:80%;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:15.5px}
+.bubble{background:var(--gray);padding:12px 18px;border-radius:24px;max-width:80%;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:15.5px}
 .msg.bot .logo{margin-top:2px}
 .body{flex:1;min-width:0}
 .content{font-size:15.5px;line-height:1.7;overflow-wrap:anywhere}
-.content p{margin:0 0 12px}
-.content p:last-child{margin-bottom:0}
-.content ul,.content ol{margin:0 0 12px 22px}
+.content p,.content ul,.content ol,.content .tw,.content .cb{margin-bottom:12px}
+.content>*:last-child{margin-bottom:0}
+.content ul,.content ol{padding-left:24px}
 .content li{margin-bottom:4px}
-.content h3{font-size:16.5px;font-weight:600;margin:16px 0 8px}
+.content h2,.content h3,.content h4{font-weight:600;margin:18px 0 8px;line-height:1.35}
+.content h2{font-size:20px}.content h3{font-size:17.5px}.content h4{font-size:16px}
+.content hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+.content a{color:#0b57d0}
 .content code{background:#f0f0f0;padding:2px 6px;border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em}
-.content pre{background:#0d0d0d;color:#f2f2f2;border-radius:12px;padding:14px 16px;overflow-x:auto;margin:0 0 12px}
-.content pre code{background:none;padding:0;color:inherit;font-size:13.5px;line-height:1.6}
-.actions{margin-top:8px;height:30px}
-.copy{font-size:12.5px;color:var(--muted);padding:5px 10px;border-radius:8px}
-.copy:hover{background:var(--user);color:var(--text)}
-.rage{border:1px solid #f1b5b5;background:#fff5f5;border-radius:14px;padding:14px 16px}
+.cb{background:#0d0d0d;border-radius:14px;overflow:hidden}
+.cbh{display:flex;justify-content:space-between;align-items:center;background:#2a2a2a;color:#d0d0d0;font-size:12.5px;padding:6px 8px 6px 16px}
+.cpc{color:#d0d0d0;font-size:12.5px;padding:4px 8px;border-radius:6px}
+.cpc:hover{background:#3d3d3d}
+.cb pre{overflow-x:auto;padding:14px 16px}
+.content .cb code{background:none;padding:0;color:#f2f2f2;font-size:13.5px;line-height:1.6}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;font-size:14.5px;min-width:50%}
+th,td{border:1px solid var(--line);padding:8px 14px;text-align:left}
+th{background:var(--side);font-weight:600}
+.rage{border:1px solid #f1b5b5;background:#fff5f5;border-radius:16px;padding:14px 16px}
 .rage-tag{display:inline-block;font-size:12.5px;font-weight:600;color:#b71c1c;background:#fde2e2;border-radius:999px;padding:3px 10px;margin-bottom:10px}
-.msg.err .content{color:#b71c1c}
+.acts{display:flex;gap:2px;margin-top:8px}
+.ab{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--muted)}
+.ab:hover{background:var(--gray);color:#0d0d0d}
+.ab.on{color:#0d0d0d;background:var(--hover)}
+.err .content{color:#b71c1c}
 .dots{display:flex;gap:5px;padding:12px 0}
 .dots i{width:7px;height:7px;border-radius:50%;background:#bbb;animation:b 1.2s infinite}
 .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
 @keyframes b{0%,60%,100%{opacity:.3}30%{opacity:1}}
 
 /* Saisie */
-.composer{padding:0 20px calc(10px + env(safe-area-inset-bottom,0px))}
-.box{max-width:768px;margin:0 auto;display:flex;align-items:flex-end;gap:8px;border:1px solid var(--line);border-radius:26px;padding:8px 8px 8px 20px;box-shadow:0 2px 10px rgba(0,0,0,.07);background:#fff}
-#input{flex:1;border:0;outline:0;resize:none;font:inherit;font-size:15.5px;line-height:1.5;max-height:200px;padding:7px 0;background:transparent}
-#send{width:36px;height:36px;border-radius:50%;background:#0d0d0d;color:#fff;display:grid;place-items:center;flex:none;transition:opacity .15s}
-#send:disabled{background:#d4d4d4;cursor:not-allowed}
+.dock{padding:0 20px calc(10px + env(safe-area-inset-bottom,0px))}
+#status{max-width:768px;margin:0 auto 8px;font-size:13px;font-weight:500;color:var(--red);padding-left:12px}
+.box{max-width:768px;margin:0 auto;display:flex;align-items:flex-end;gap:6px;background:var(--gray);border-radius:26px;padding:8px 8px 8px 20px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.box.listening{background:#fff1f0}
+#input{flex:1;border:0;outline:0;resize:none;background:transparent;font:inherit;font-size:15.5px;line-height:1.5;max-height:200px;padding:7px 0}
+.rb{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:18px}
+#mic:hover{background:var(--hover)}
+#mic.rec{background:var(--red);animation:pulse 1.3s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,57,53,.5)}100%{box-shadow:0 0 0 14px rgba(229,57,53,0)}}
+#send{background:#0d0d0d;color:#fff;transition:opacity .15s}
+#send:disabled{opacity:.15;cursor:not-allowed}
 .note{text-align:center;font-size:12px;color:var(--muted);margin-top:8px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#0d0d0d;color:#fff;font-size:13.5px;padding:10px 16px;border-radius:12px;z-index:70;max-width:90vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.2)}
 
-/* Mobile */
 @media (max-width:768px){
- #sidebar{position:fixed;inset:0 auto 0 0;width:min(280px,84vw);transform:translateX(-100%);box-shadow:none}
- body.open #sidebar{transform:none;box-shadow:0 0 40px rgba(0,0,0,.2)}
- body.open #overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:20}
- .topbar{display:flex}
- .item .del{opacity:1}
- #welcome h1{font-size:23px}
- .cards{grid-template-columns:1fr}
- .col{padding:18px 14px}
- .composer{padding-left:12px;padding-right:12px}
+ #sidebar{position:fixed;inset:0 auto 0 0}
+ body.sb-open #sidebar{box-shadow:0 0 40px rgba(0,0,0,.2)}
+ body.sb-open #overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:25}
+ .more{opacity:1}
+ #hero{font-size:23px}
+ .col{padding:12px 14px 8px}
+ .dock{padding-left:12px;padding-right:12px}
  .bubble{max-width:88%}
  .msg{gap:10px}
 }
+@media (max-width:420px){.vt{display:none}#voiceBtn{padding:7px 11px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
-<body>
+<body class="home">
 
 <aside id="sidebar">
-  <button id="newChat"><span style="font-size:18px;line-height:1">+</span> Nouvelle discussion</button>
+  <button id="newChat"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Nouveau chat</button>
   <nav id="list" aria-label="Discussions"></nav>
-  <div class="brand"><div class="logo sm">S</div>Solvex</div>
+  <div class="me"><div class="logo sm">S</div>Solvex AI</div>
 </aside>
 <div id="overlay"></div>
+<div id="menu" hidden><button id="mRen">Renommer</button><button id="mDel">Supprimer</button></div>
 
 <main>
-  <div class="topbar">
-    <button id="menuBtn" aria-label="Ouvrir le menu">☰</button>
-    <b>Solvex</b>
-  </div>
-
-  <div id="chat">
-    <div id="welcome">
-      <div class="logo lg">S</div>
-      <h1>Comment puis-je t’aider aujourd’hui ?</h1>
-      <div class="cards">
-        <button class="card" data-q="Explique-moi un concept complexe">Explique-moi un concept complexe<small>En termes simples</small></button>
-        <button class="card" data-q="Aide-moi à coder">Aide-moi à coder<small>Écrire ou corriger du code</small></button>
-        <button class="card" data-q="Résous un problème logique">Résous un problème logique<small>Raisonner étape par étape</small></button>
-        <button class="card" data-q="Écris un texte créatif">Écris un texte créatif<small>Histoire, poème, idée</small></button>
+  <header class="top">
+    <div class="l">
+      <button id="sbBtn" class="ib" aria-label="Ouvrir ou fermer la barre latérale"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button>
+      <div class="rel">
+        <button id="model" aria-haspopup="true">Solvex v2 <span>▾</span></button>
+        <div id="tip" role="tooltip" hidden>Génie Artificiel • Mode Rage actif</div>
       </div>
     </div>
-    <div class="col" id="messages"></div>
-  </div>
+    <button id="voiceBtn" aria-pressed="false"><span class="vt">Mode Vocal</span><span id="vIcon">🔇</span></button>
+  </header>
 
-  <div class="composer">
-    <div class="box">
-      <textarea id="input" rows="1" placeholder="Envoyer un message à Solvex..." aria-label="Message"></textarea>
-      <button id="send" disabled aria-label="Envoyer">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-      </button>
+  <div id="stage">
+    <div id="chat"><div class="col" id="messages"></div></div>
+    <h1 id="hero">Que puis-je faire pour vous ?</h1>
+    <div class="dock">
+      <div id="status" hidden>🎤 Parlez maintenant...</div>
+      <div class="box" id="box">
+        <textarea id="input" rows="1" placeholder="Envoyer un message à Solvex..." aria-label="Message"></textarea>
+        <button id="mic" class="rb" aria-label="Parler au micro" title="Parler">🎤</button>
+        <button id="send" class="rb" disabled aria-label="Envoyer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+      </div>
+      <p class="note">Solvex peut faire des erreurs. Vérifie les informations importantes.</p>
     </div>
-    <p class="note">Solvex peut faire des erreurs. Vérifie les informations importantes.</p>
+    <div id="pills">
+      <button class="sug">Résous un problème complexe</button>
+      <button class="sug">Écris du code</button>
+      <button class="sug">Explique un concept</button>
+      <button class="sug">Teste le Mode Rage</button>
+    </div>
   </div>
 </main>
+<div id="toast" hidden></div>
 
 <script>
-const KEY = 'solvex_chats_v1', AKEY = 'solvex_active_v1';
-let chats = [], activeId = null, busy = false;
-const $ = s => document.querySelector(s);
-const messagesEl = $('#messages'), chatEl = $('#chat'), input = $('#input'), sendBtn = $('#send');
+const KEY='solvex_chats_v1',AKEY='solvex_active_v1',VKEY='solvex_voice_v1',PH='Envoyer un message à Solvex...';
+const $=s=>document.querySelector(s);
+const messagesEl=$('#messages'),chatEl=$('#chat'),input=$('#input'),sendBtn=$('#send'),micBtn=$('#mic'),box=$('#box');
+let chats=[],activeId=null,busy=false,voiceOn=false;
+const IC={
+ copy:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>',
+ ok:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+ spk:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M19 5a10 10 0 010 14"/></svg>'
+};
 
 /* ---------- Stockage ---------- */
-function load() {
-  try { chats = JSON.parse(localStorage.getItem(KEY) || '[]'); if (!Array.isArray(chats)) chats = []; } catch (e) { chats = []; }
-  try { activeId = localStorage.getItem(AKEY); } catch (e) {}
-  if (!chats.some(c => c.id === activeId)) activeId = null;
+function load(){
+ try{chats=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(chats))chats=[]}catch(e){chats=[]}
+ try{activeId=localStorage.getItem(AKEY);voiceOn=localStorage.getItem(VKEY)==='1'}catch(e){}
+ if(!chats.some(c=>c.id===activeId))activeId=null;
 }
-function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(chats)); localStorage.setItem(AKEY, activeId || ''); } catch (e) {}
-}
-const current = () => chats.find(c => c.id === activeId);
+function save(){try{localStorage.setItem(KEY,JSON.stringify(chats));localStorage.setItem(AKEY,activeId||'')}catch(e){}}
+const current=()=>chats.find(c=>c.id===activeId);
+const copy=t=>navigator.clipboard?navigator.clipboard.writeText(t).catch(()=>{}):Promise.resolve();
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,3800)}
 
-/* ---------- Rendu Markdown léger ---------- */
-const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const inline = s => s
-  .replace(/`([^`\n]+)`/g, '<code>$1</code>')
-  .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  .replace(/(^|[^*\w])\*([^*\n]+)\*/g, '$1<em>$2</em>');
-function md(t) {
-  const pre = [];
-  t = t.replace(/```[\w+-]*\n?([\s\S]*?)(```|$)/g, (m, c) => { pre.push(c.replace(/\n$/, '')); return '\n\n@@' + (pre.length - 1) + '@@\n\n'; });
-  t = t.replace(/^(#{1,3} .*)$/gm, '\n\n$1\n\n');
-  return esc(t).split(/\n{2,}/).map(p => {
-    p = p.trim(); if (!p) return '';
-    const m = p.match(/^@@(\d+)@@$/);
-    if (m) return '<pre><code>' + esc(pre[m[1]]) + '</code></pre>';
-    if (/^#{1,3} /.test(p)) return '<h3>' + inline(p.replace(/^#{1,3} /, '')) + '</h3>';
-    const L = p.split('\n');
-    if (L.every(l => /^\s*[-*•] /.test(l))) return '<ul>' + L.map(l => '<li>' + inline(l.replace(/^\s*[-*•] /, '')) + '</li>').join('') + '</ul>';
-    if (L.every(l => /^\s*\d+[.)] /.test(l))) return '<ol>' + L.map(l => '<li>' + inline(l.replace(/^\s*\d+[.)] /, '')) + '</li>').join('') + '</ol>';
-    return '<p>' + inline(p).replace(/\n/g, '<br>') + '</p>';
-  }).join('');
+/* ---------- Markdown ---------- */
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const inl=s=>s.replace(/`([^`\n]+)`/g,'<code>$1</code>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*\w])\*([^*\n]+)\*/g,'$1<em>$2</em>').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+function table(L){
+ const cells=l=>l.trim().replace(/^\||\|$/g,'').split('|').map(c=>inl(c.trim()));
+ return '<div class="tw"><table><thead><tr>'+cells(L[0]).map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>'+L.slice(2).map(l=>'<tr>'+cells(l).map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+}
+function para(L){
+ let o='',b=[],l=null;
+ const fp=()=>{if(b.length)o+='<p>'+inl(b.join('\n')).replace(/\n/g,'<br>')+'</p>';b=[]};
+ const fl=()=>{if(l)o+='<'+l.t+'>'+l.i.map(x=>'<li>'+inl(x)+'</li>').join('')+'</'+l.t+'>';l=null};
+ L.forEach(x=>{
+  const m=x.match(/^\s*([-*•]|\d+[.)])\s+(.*)/);
+  if(m){fp();const t=/\d/.test(m[1])?'ol':'ul';if(l&&l.t!==t)fl();(l=l||{t,i:[]}).i.push(m[2])}
+  else{fl();b.push(x)}
+ });
+ fp();fl();return o;
+}
+function md(t){
+ const pre=[];
+ t=t.replace(/```([\w+#-]*)[^\S\n]*\n?([\s\S]*?)(```|$)/g,(m,l,c)=>{pre.push([l,c.replace(/\n$/,'')]);return '\n\n@@'+(pre.length-1)+'@@\n\n'});
+ t=t.replace(/^(#{1,6} .*)$/gm,'\n\n$1\n\n');
+ return esc(t).split(/\n{2,}/).map(p=>{
+  p=p.trim();if(!p)return '';
+  const m=p.match(/^@@(\d+)@@$/);
+  if(m){const[l,c]=pre[m[1]];return '<div class="cb"><div class="cbh"><span>'+esc(l||'code')+'</span><button class="cpc">Copier le code</button></div><pre><code>'+esc(c)+'</code></pre></div>'}
+  if(/^[-*_]{3,}$/.test(p))return '<hr>';
+  if(/^#{1,6} /.test(p)){const n=Math.min(p.match(/^#+/)[0].length+1,4);return '<h'+n+'>'+inl(p.replace(/^#+ /,''))+'</h'+n+'>'}
+  const L=p.split('\n');
+  if(L.length>2&&L.every(x=>/^\s*\|.*\|\s*$/.test(x))&&/^\s*\|?[\s:|-]+\|?\s*$/.test(L[1]))return table(L);
+  return para(L);
+ }).join('');
 }
 
-/* ---------- Messages ---------- */
-function addMessage(m) {
-  const d = document.createElement('div');
-  if (m.role === 'user') {
-    d.className = 'msg user';
-    const b = document.createElement('div'); b.className = 'bubble'; b.textContent = m.content;
-    d.appendChild(b);
-  } else {
-    d.className = 'msg bot';
-    let html = md(m.content);
-    if (/\bRAGE\b/.test(m.content)) html = '<div class="rage"><span class="rage-tag">🔥 Mode Solvex Rage activé</span>' + html + '</div>';
-    d.innerHTML = '<div class="logo sm">S</div><div class="body"><div class="content">' + html + '</div><div class="actions"><button class="copy">Copier</button></div></div>';
-    d.querySelector('.copy').onclick = function () {
-      const btn = this;
-      const done = () => { btn.textContent = 'Copié ✓'; setTimeout(() => btn.textContent = 'Copier', 1600); };
-      if (navigator.clipboard) navigator.clipboard.writeText(m.content).then(done, done); else done();
-    };
-  }
-  messagesEl.appendChild(d);
-  return d;
+/* ---------- Voix de Solvex (synthèse vocale) ---------- */
+let voice=null,spkBtn=null;
+const TTS='speechSynthesis' in window;
+function pickVoice(){
+ const sc=x=>(/natural|neural|online|premium|enhanced|google/i.test(x.name)?10:0)+(/fr[-_]FR/i.test(x.lang)?5:0)+(x.localService?0:1);
+ voice=speechSynthesis.getVoices().filter(x=>/^fr/i.test(x.lang)).sort((a,b)=>sc(b)-sc(a))[0]||null;
 }
-function addTyping() {
-  const d = document.createElement('div'); d.className = 'msg bot';
-  d.innerHTML = '<div class="logo sm">S</div><div class="body"><div class="dots"><i></i><i></i><i></i></div></div>';
-  messagesEl.appendChild(d); scrollDown(); return d;
+if(TTS){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;addEventListener('beforeunload',()=>speechSynthesis.cancel())}
+function clean(t){
+ return t.replace(/```[\s\S]*?(```|$)/g,' (bloc de code) ').replace(/`([^`]*)`/g,'$1').replace(/^#{1,6}\s*/gm,'')
+  .replace(/\[([^\]]+)\]\([^)]*\)/g,'$1').replace(/^\s*[-•]\s+/gm,'').replace(/[*_~>|#]+/g,' ')
+  .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s+/g,' ').trim();
 }
-function addError(text) {
-  const d = document.createElement('div'); d.className = 'msg bot err';
-  d.innerHTML = '<div class="logo sm">S</div><div class="body"><div class="content"></div></div>';
-  d.querySelector('.content').textContent = text;
-  messagesEl.appendChild(d); scrollDown();
+function stopSpeak(){if(TTS)speechSynthesis.cancel();if(spkBtn){spkBtn.classList.remove('on');spkBtn=null}}
+function speak(text,btn){
+ if(!TTS)return toast('La lecture vocale n’est pas prise en charge par ce navigateur.');
+ stopSpeak();
+ const parts=clean(text).match(/[^.!?…:;]+[.!?…:;]*\s*/g)||[],chunks=[];let cur='';
+ parts.forEach(p=>{if(cur&&(cur+p).length>200){chunks.push(cur);cur=p}else cur+=p});
+ if(cur.trim())chunks.push(cur);
+ if(!chunks.length)return;
+ if(btn){btn.classList.add('on');spkBtn=btn}
+ setTimeout(()=>chunks.forEach((c,i)=>{
+  const u=new SpeechSynthesisUtterance(c.trim());u.lang='fr-FR';if(voice)u.voice=voice;
+  if(i===chunks.length-1)u.onend=u.onerror=()=>{if(btn&&spkBtn===btn){btn.classList.remove('on');spkBtn=null}};
+  speechSynthesis.speak(u);
+ }),60);
 }
-const scrollDown = () => { chatEl.scrollTop = chatEl.scrollHeight; };
+function setVoice(on){
+ voiceOn=on;$('#voiceBtn').classList.toggle('on',on);$('#voiceBtn').setAttribute('aria-pressed',on);$('#vIcon').textContent=on?'🔊':'🔇';
+ if(!on)stopSpeak();
+ try{localStorage.setItem(VKEY,on?'1':'0')}catch(e){}
+}
 
-function renderAll() {
-  const c = current();
-  messagesEl.innerHTML = '';
-  if (c) c.messages.forEach(addMessage);
-  $('#welcome').style.display = (c && c.messages.length) ? 'none' : 'flex';
-  messagesEl.style.display = (c && c.messages.length) ? 'block' : 'none';
-  renderList(); scrollDown();
+/* ---------- Micro (reconnaissance vocale) ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null,listening=false,heard='';
+function micUI(on){
+ listening=on;micBtn.classList.toggle('rec',on);box.classList.toggle('listening',on);$('#status').hidden=!on;
+ input.placeholder=on?'Parlez maintenant...':PH;
 }
-function renderList() {
-  const list = $('#list'); list.innerHTML = '';
-  if (!chats.length) { list.innerHTML = '<div class="empty-list">Aucune discussion pour l’instant.</div>'; return; }
-  [...chats].sort((a, b) => b.updated - a.updated).forEach(c => {
-    const it = document.createElement('div');
-    it.className = 'item' + (c.id === activeId ? ' active' : '');
-    it.innerHTML = '<span class="t"></span><button class="del" aria-label="Supprimer la discussion" title="Supprimer">✕</button>';
-    it.querySelector('.t').textContent = c.title;
-    it.onclick = () => { activeId = c.id; save(); renderAll(); closeMenu(); };
-    it.querySelector('.del').onclick = e => {
-      e.stopPropagation();
-      if (!confirm('Supprimer cette discussion ?')) return;
-      chats = chats.filter(x => x.id !== c.id);
-      if (activeId === c.id) activeId = null;
-      save(); renderAll();
-    };
-    list.appendChild(it);
+function toggleMic(){
+ if(!SR)return toast('La reconnaissance vocale n’est pas disponible ici. Essaie Chrome, Edge ou Safari.');
+ if(listening){rec.stop();return}
+ if(busy)return;
+ stopSpeak();heard='';
+ rec=new SR();rec.lang='fr-FR';rec.interimResults=true;rec.continuous=false;
+ rec.onstart=()=>{micUI(true);input.value='';resize()};
+ rec.onresult=e=>{let s='';for(const r of e.results)s+=r[0].transcript;heard=s;input.value=s;resize()};
+ rec.onerror=e=>{
+  if(/not-allowed|service-not-allowed/.test(e.error))toast('Accès au micro refusé. Autorise le micro dans les réglages du navigateur.');
+  else if(e.error==='no-speech')toast('Je n’ai rien entendu. Réessaie.');
+  else if(e.error!=='aborted')toast('Erreur du micro : '+e.error);
+ };
+ rec.onend=()=>{micUI(false);const t=heard.trim();heard='';if(t)send(t,true);else{input.value='';resize()}};
+ try{rec.start()}catch(e){micUI(false)}
+}
+
+/* ---------- Affichage ---------- */
+function addMessage(m){
+ const d=document.createElement('div');
+ if(m.role==='user'){
+  d.className='msg user';const b=document.createElement('div');b.className='bubble';b.textContent=m.content;d.appendChild(b);
+ }else{
+  d.className='msg bot';
+  let h=md(m.content);
+  if(/\bRAGE\b/.test(m.content))h='<div class="rage"><span class="rage-tag">🔥 Mode Solvex Rage activé</span>'+h+'</div>';
+  d.innerHTML='<div class="logo sm">S</div><div class="body"><div class="content">'+h+'</div><div class="acts"><button class="ab cp" title="Copier" aria-label="Copier">'+IC.copy+'</button><button class="ab spk" title="Écouter à voix haute" aria-label="Écouter à voix haute">'+IC.spk+'</button></div></div>';
+  const cp=d.querySelector('.cp'),sp=d.querySelector('.spk');
+  cp.onclick=()=>copy(m.content).then(()=>{cp.innerHTML=IC.ok;setTimeout(()=>cp.innerHTML=IC.copy,1600)});
+  sp.onclick=()=>sp.classList.contains('on')?stopSpeak():speak(m.content,sp);
+ }
+ messagesEl.appendChild(d);
+}
+messagesEl.addEventListener('click',e=>{
+ const b=e.target.closest('.cpc');if(!b)return;
+ copy(b.closest('.cb').querySelector('code').textContent).then(()=>{b.textContent='Copié ✓';setTimeout(()=>b.textContent='Copier le code',1600)});
+});
+function addTyping(){
+ const d=document.createElement('div');d.className='msg bot';
+ d.innerHTML='<div class="logo sm">S</div><div class="body"><div class="dots"><i></i><i></i><i></i></div></div>';
+ messagesEl.appendChild(d);scrollDown();
+}
+function addError(t){
+ const d=document.createElement('div');d.className='msg bot err';
+ d.innerHTML='<div class="logo sm">S</div><div class="body"><div class="content"></div></div>';
+ d.querySelector('.content').textContent=t;messagesEl.appendChild(d);scrollDown();
+}
+const scrollDown=()=>{chatEl.scrollTop=chatEl.scrollHeight};
+function renderAll(){
+ const c=current();
+ messagesEl.innerHTML='';
+ if(c)c.messages.forEach(addMessage);
+ document.body.classList.toggle('home',!(c&&c.messages.length));
+ renderList();scrollDown();
+}
+
+/* ---------- Historique ---------- */
+const menu=$('#menu');let menuFor=null;
+function renderList(){
+ const list=$('#list');list.innerHTML='';
+ if(!chats.length){list.innerHTML='<div class="nolist">Aucune discussion pour l’instant.</div>';return}
+ const day=new Date().toDateString(),all=[...chats].sort((a,b)=>b.updated-a.updated);
+ [['Aujourd’hui',all.filter(c=>new Date(c.updated).toDateString()===day)],['Précédent',all.filter(c=>new Date(c.updated).toDateString()!==day)]].forEach(([label,arr])=>{
+  if(!arr.length)return;
+  const g=document.createElement('div');g.className='grp';g.textContent=label;list.appendChild(g);
+  arr.forEach(c=>{
+   const it=document.createElement('div');it.className='item'+(c.id===activeId?' active':'');
+   it.innerHTML='<span class="t"></span><button class="more" aria-label="Options de la discussion">⋯</button>';
+   it.querySelector('.t').textContent=c.title;
+   it.onclick=()=>{activeId=c.id;save();renderAll();closeSb()};
+   it.querySelector('.more').onclick=e=>{
+    e.stopPropagation();const r=e.currentTarget.getBoundingClientRect();
+    menu.style.top=r.bottom+4+'px';menu.style.left=Math.max(8,Math.min(r.left,innerWidth-172))+'px';
+    menu.hidden=false;menuFor={c,it};
+   };
+   list.appendChild(it);
   });
+ });
 }
+function rename({c,it}){
+ const t=it.querySelector('.t'),i=document.createElement('input');
+ i.className='ren';i.value=c.title;t.replaceWith(i);i.focus();i.select();
+ let done=false;
+ const fin=ok=>{if(done)return;done=true;if(ok&&i.value.trim())c.title=i.value.trim().slice(0,80);save();renderList()};
+ i.onkeydown=e=>{if(e.key==='Enter')fin(true);if(e.key==='Escape')fin(false)};
+ i.onblur=()=>fin(true);i.onclick=e=>e.stopPropagation();
+}
+$('#mRen').onclick=()=>{menu.hidden=true;if(menuFor)rename(menuFor)};
+$('#mDel').onclick=()=>{
+ menu.hidden=true;if(!menuFor)return;const id=menuFor.c.id;
+ if(!confirm('Supprimer cette discussion ?'))return;
+ chats=chats.filter(x=>x.id!==id);if(activeId===id)activeId=null;save();renderAll();
+};
 
 /* ---------- Envoi (logique réseau) ---------- */
-async function send(text) {
-  text = (text || '').trim();
-  if (!text || busy) return;
-  let c = current();
-  if (!c) {
-    c = { id: Date.now().toString(36), title: text.length > 40 ? text.slice(0, 40) + '…' : text, messages: [], updated: Date.now() };
-    chats.unshift(c); activeId = c.id;
-  }
-  c.messages.push({ role: 'user', content: text });
-  c.updated = Date.now(); save();
-  input.value = ''; resize(); renderAll();
-  setBusy(true);
-  addTyping();
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ history: c.messages.map(({ role, content }) => ({ role, content })) })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    c.messages.push({ role: 'assistant', content: String(data.reply ?? '') });
-    c.updated = Date.now(); save();
-    if (activeId === c.id) renderAll(); else renderList();
-  } catch (e) {
-    if (activeId === c.id) { renderAll(); addError('Solvex n’a pas pu répondre. Vérifie ta connexion ou le serveur, puis réessaie.'); }
-  }
-  setBusy(false);
-  input.focus();
+async function send(text,byVoice){
+ text=(text||'').trim();if(!text||busy)return;
+ stopSpeak();
+ let c=current();
+ if(!c){c={id:Date.now().toString(36),title:text.length>40?text.slice(0,40)+'…':text,messages:[],updated:Date.now()};chats.unshift(c);activeId=c.id}
+ c.messages.push({role:'user',content:text});c.updated=Date.now();save();
+ input.value='';resize();renderAll();setBusy(true);addTyping();
+ try{
+  const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({history:c.messages.map(({role,content})=>({role,content}))})});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const data=await res.json(),reply=String(data.reply??'');
+  c.messages.push({role:'assistant',content:reply});c.updated=Date.now();save();
+  if(activeId===c.id){
+   renderAll();
+   if(byVoice||voiceOn)speak(reply,messagesEl.querySelector('.msg.bot:last-child .spk'));
+  }else renderList();
+ }catch(e){
+  if(activeId===c.id){renderAll();addError('Solvex n’a pas pu répondre. Vérifie ta connexion ou le serveur, puis réessaie.')}
+ }
+ setBusy(false);
 }
-function setBusy(b) { busy = b; sendBtn.disabled = b || !input.value.trim(); }
+function setBusy(b){busy=b;sendBtn.disabled=b||!input.value.trim()}
 
 /* ---------- Interface ---------- */
-function resize() {
-  input.style.height = 'auto';
-  input.style.height = Math.min(input.scrollHeight, 200) + 'px';
-  sendBtn.disabled = busy || !input.value.trim();
+function resize(){
+ input.style.height='auto';input.style.height=Math.min(input.scrollHeight,200)+'px';
+ sendBtn.disabled=busy||!input.value.trim();
 }
-input.addEventListener('input', resize);
-input.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(input.value); }
+input.addEventListener('input',resize);
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send(input.value)}});
+sendBtn.onclick=()=>send(input.value);
+micBtn.onclick=toggleMic;
+document.querySelectorAll('.sug').forEach(b=>b.onclick=()=>send(b.textContent));
+const mobile=()=>innerWidth<=768,closeSb=()=>{if(mobile())document.body.classList.remove('sb-open')};
+$('#sbBtn').onclick=()=>document.body.classList.toggle('sb-open');
+$('#overlay').onclick=()=>document.body.classList.remove('sb-open');
+$('#newChat').onclick=()=>{activeId=null;save();renderAll();closeSb();input.focus()};
+$('#model').onclick=e=>{e.stopPropagation();$('#tip').hidden=!$('#tip').hidden};
+$('#voiceBtn').onclick=()=>setVoice(!voiceOn);
+document.addEventListener('click',e=>{
+ if(!e.target.closest('#menu'))menu.hidden=true;
+ if(!e.target.closest('.rel'))$('#tip').hidden=true;
 });
-sendBtn.onclick = () => send(input.value);
-document.querySelectorAll('.card').forEach(b => b.onclick = () => send(b.dataset.q));
-$('#newChat').onclick = () => { activeId = null; save(); renderAll(); closeMenu(); input.focus(); };
-const closeMenu = () => document.body.classList.remove('open');
-$('#menuBtn').onclick = () => document.body.classList.toggle('open');
-$('#overlay').onclick = closeMenu;
 
-load(); renderAll();
+load();setVoice(voiceOn);
+if(!mobile())document.body.classList.add('sb-open');
+renderAll();
 </script>
 </body>
 </html>
