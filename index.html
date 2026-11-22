@@ -1,73 +1,299 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solvex — Génie IA</title>
-  <style>
-    body { font-family: system-ui, sans-serif; background: #090d16; color: white; display: flex; flex-direction: column; height: 100vh; margin: 0; }
-    header { background: #111827; padding: 16px; text-align: center; font-weight: bold; font-size: 1.3rem; border-bottom: 1px solid #38bdf8; color: #38bdf8; letter-spacing: 1px; }
-    #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; max-width: 800px; width: 100%; margin: auto; box-sizing: border-box; }
-    .msg { padding: 12px 16px; border-radius: 14px; max-width: 80%; line-height: 1.5; white-space: pre-wrap; }
-    .user { background: #0284c7; align-self: flex-end; border-bottom-right-radius: 4px; }
-    .bot { background: #1e293b; align-self: flex-start; border: 1px solid #334155; border-bottom-left-radius: 4px; }
-    .rage { background: #450a0a; border: 1px solid #ef4444; color: #fecaca; }
-    form { display: flex; gap: 10px; padding: 15px; background: #111827; max-width: 800px; width: 100%; margin: auto; box-sizing: border-box; }
-    input { flex: 1; padding: 12px 16px; border-radius: 10px; border: 1px solid #334155; background: #090d16; color: white; font-size: 1rem; outline: none; }
-    input:focus { border-color: #38bdf8; }
-    button { padding: 12px 22px; border-radius: 10px; border: none; background: #38bdf8; color: #090d16; font-weight: bold; cursor: pointer; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solvex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#fff;--side:#f9f9f9;--line:#e5e5e5;--user:#f4f4f4;--text:#0d0d0d;--muted:#6b6b6b;--hover:#ececec}
+html,body{height:100%}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid #0d0d0d;outline-offset:2px}
+
+/* Logo */
+.logo{display:grid;place-items:center;background:#0d0d0d;color:#fff;font-weight:600;border-radius:50%;flex:none}
+.logo.sm{width:28px;height:28px;font-size:14px}
+.logo.lg{width:56px;height:56px;font-size:28px}
+
+/* Sidebar */
+#sidebar{width:260px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:12px;flex:none;z-index:30;transition:transform .25s ease}
+#newChat{display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:14px;font-weight:500;transition:background .15s}
+#newChat:hover{background:var(--hover)}
+#list{flex:1;overflow-y:auto;margin:14px -4px;padding:0 4px;display:flex;flex-direction:column;gap:2px}
+.item{display:flex;align-items:center;gap:4px;border-radius:8px;padding:0 4px 0 12px;cursor:pointer;min-height:38px}
+.item:hover,.item.active{background:var(--hover)}
+.item .t{flex:1;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:9px 0}
+.item .del{width:28px;height:28px;border-radius:6px;color:var(--muted);opacity:0;font-size:16px;line-height:1}
+.item:hover .del,.item.active .del{opacity:1}
+.item .del:hover{background:#ddd;color:#c62828}
+.empty-list{font-size:13px;color:var(--muted);padding:8px 12px}
+.brand{display:flex;align-items:center;gap:10px;padding:12px 8px 4px;border-top:1px solid var(--line);font-weight:600;font-size:15px}
+#overlay{display:none}
+
+/* Main */
+main{flex:1;min-width:0;display:flex;flex-direction:column;height:100%;height:100dvh}
+.topbar{display:none;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line)}
+#menuBtn{width:38px;height:38px;border-radius:8px;font-size:20px}
+#menuBtn:hover{background:var(--hover)}
+.topbar b{font-weight:600}
+#chat{flex:1;overflow-y:auto;position:relative}
+.col{max-width:768px;margin:0 auto;padding:24px 20px}
+
+/* Accueil */
+#welcome{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:28px;text-align:center}
+#welcome h1{font-size:28px;font-weight:600;letter-spacing:-.01em}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%;max-width:640px}
+.card{text-align:left;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.4;transition:background .15s}
+.card:hover{background:var(--side)}
+.card small{display:block;color:var(--muted);margin-top:2px;font-size:13px}
+
+/* Messages */
+.msg{display:flex;gap:14px;margin-bottom:28px}
+.msg.user{justify-content:flex-end}
+.bubble{background:var(--user);padding:10px 18px;border-radius:20px;max-width:80%;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;font-size:15.5px}
+.msg.bot .logo{margin-top:2px}
+.body{flex:1;min-width:0}
+.content{font-size:15.5px;line-height:1.7;overflow-wrap:anywhere}
+.content p{margin:0 0 12px}
+.content p:last-child{margin-bottom:0}
+.content ul,.content ol{margin:0 0 12px 22px}
+.content li{margin-bottom:4px}
+.content h3{font-size:16.5px;font-weight:600;margin:16px 0 8px}
+.content code{background:#f0f0f0;padding:2px 6px;border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em}
+.content pre{background:#0d0d0d;color:#f2f2f2;border-radius:12px;padding:14px 16px;overflow-x:auto;margin:0 0 12px}
+.content pre code{background:none;padding:0;color:inherit;font-size:13.5px;line-height:1.6}
+.actions{margin-top:8px;height:30px}
+.copy{font-size:12.5px;color:var(--muted);padding:5px 10px;border-radius:8px}
+.copy:hover{background:var(--user);color:var(--text)}
+.rage{border:1px solid #f1b5b5;background:#fff5f5;border-radius:14px;padding:14px 16px}
+.rage-tag{display:inline-block;font-size:12.5px;font-weight:600;color:#b71c1c;background:#fde2e2;border-radius:999px;padding:3px 10px;margin-bottom:10px}
+.msg.err .content{color:#b71c1c}
+.dots{display:flex;gap:5px;padding:12px 0}
+.dots i{width:7px;height:7px;border-radius:50%;background:#bbb;animation:b 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,60%,100%{opacity:.3}30%{opacity:1}}
+
+/* Saisie */
+.composer{padding:0 20px calc(10px + env(safe-area-inset-bottom,0px))}
+.box{max-width:768px;margin:0 auto;display:flex;align-items:flex-end;gap:8px;border:1px solid var(--line);border-radius:26px;padding:8px 8px 8px 20px;box-shadow:0 2px 10px rgba(0,0,0,.07);background:#fff}
+#input{flex:1;border:0;outline:0;resize:none;font:inherit;font-size:15.5px;line-height:1.5;max-height:200px;padding:7px 0;background:transparent}
+#send{width:36px;height:36px;border-radius:50%;background:#0d0d0d;color:#fff;display:grid;place-items:center;flex:none;transition:opacity .15s}
+#send:disabled{background:#d4d4d4;cursor:not-allowed}
+.note{text-align:center;font-size:12px;color:var(--muted);margin-top:8px}
+
+/* Mobile */
+@media (max-width:768px){
+ #sidebar{position:fixed;inset:0 auto 0 0;width:min(280px,84vw);transform:translateX(-100%);box-shadow:none}
+ body.open #sidebar{transform:none;box-shadow:0 0 40px rgba(0,0,0,.2)}
+ body.open #overlay{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:20}
+ .topbar{display:flex}
+ .item .del{opacity:1}
+ #welcome h1{font-size:23px}
+ .cards{grid-template-columns:1fr}
+ .col{padding:18px 14px}
+ .composer{padding-left:12px;padding-right:12px}
+ .bubble{max-width:88%}
+ .msg{gap:10px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
-  <header>⚡ SOLVEX AI — Génie Artificiel</header>
-  <div id="chat">
-    <div class="msg bot">Salut ! Je suis Solvex, ton génie personnel. Pose-moi n'importe quel défi (et reste poli, sinon ça va chauffer).</div>
+
+<aside id="sidebar">
+  <button id="newChat"><span style="font-size:18px;line-height:1">+</span> Nouvelle discussion</button>
+  <nav id="list" aria-label="Discussions"></nav>
+  <div class="brand"><div class="logo sm">S</div>Solvex</div>
+</aside>
+<div id="overlay"></div>
+
+<main>
+  <div class="topbar">
+    <button id="menuBtn" aria-label="Ouvrir le menu">☰</button>
+    <b>Solvex</b>
   </div>
-  <form id="form">
-    <input id="input" type="text" placeholder="Parle à Solvex..." required autocomplete="off" />
-    <button type="submit">Envoyer</button>
-  </form>
 
-  <script>
-    const chat = document.getElementById("chat");
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
-    let history = [];
+  <div id="chat">
+    <div id="welcome">
+      <div class="logo lg">S</div>
+      <h1>Comment puis-je t’aider aujourd’hui ?</h1>
+      <div class="cards">
+        <button class="card" data-q="Explique-moi un concept complexe">Explique-moi un concept complexe<small>En termes simples</small></button>
+        <button class="card" data-q="Aide-moi à coder">Aide-moi à coder<small>Écrire ou corriger du code</small></button>
+        <button class="card" data-q="Résous un problème logique">Résous un problème logique<small>Raisonner étape par étape</small></button>
+        <button class="card" data-q="Écris un texte créatif">Écris un texte créatif<small>Histoire, poème, idée</small></button>
+      </div>
+    </div>
+    <div class="col" id="messages"></div>
+  </div>
 
-    function addMsg(text, cls) {
-      const div = document.createElement("div");
-      div.className = "msg " + cls;
-      if (text.includes("RAGE")) div.classList.add("rage");
-      div.textContent = text;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
-      return div;
-    }
+  <div class="composer">
+    <div class="box">
+      <textarea id="input" rows="1" placeholder="Envoyer un message à Solvex..." aria-label="Message"></textarea>
+      <button id="send" disabled aria-label="Envoyer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </div>
+    <p class="note">Solvex peut faire des erreurs. Vérifie les informations importantes.</p>
+  </div>
+</main>
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = "";
-      addMsg(text, "user");
-      history.push({ role: "user", content: text });
-      const loading = addMsg("Solvex analyse...", "bot");
+<script>
+const KEY = 'solvex_chats_v1', AKEY = 'solvex_active_v1';
+let chats = [], activeId = null, busy = false;
+const $ = s => document.querySelector(s);
+const messagesEl = $('#messages'), chatEl = $('#chat'), input = $('#input'), sendBtn = $('#send');
 
-      try {
-        const res = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ history })
-        });
-        const data = await res.json();
-        const reply = data.reply || "Erreur de réponse.";
-        loading.textContent = reply;
-        if (reply.includes("RAGE")) loading.classList.add("rage");
-        history.push({ role: "assistant", content: reply });
-      } catch {
-        loading.textContent = "Impossible de joindre le cerveau de Solvex.";
-      }
+/* ---------- Stockage ---------- */
+function load() {
+  try { chats = JSON.parse(localStorage.getItem(KEY) || '[]'); if (!Array.isArray(chats)) chats = []; } catch (e) { chats = []; }
+  try { activeId = localStorage.getItem(AKEY); } catch (e) {}
+  if (!chats.some(c => c.id === activeId)) activeId = null;
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(chats)); localStorage.setItem(AKEY, activeId || ''); } catch (e) {}
+}
+const current = () => chats.find(c => c.id === activeId);
+
+/* ---------- Rendu Markdown léger ---------- */
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const inline = s => s
+  .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+  .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  .replace(/(^|[^*\w])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+function md(t) {
+  const pre = [];
+  t = t.replace(/```[\w+-]*\n?([\s\S]*?)(```|$)/g, (m, c) => { pre.push(c.replace(/\n$/, '')); return '\n\n@@' + (pre.length - 1) + '@@\n\n'; });
+  t = t.replace(/^(#{1,3} .*)$/gm, '\n\n$1\n\n');
+  return esc(t).split(/\n{2,}/).map(p => {
+    p = p.trim(); if (!p) return '';
+    const m = p.match(/^@@(\d+)@@$/);
+    if (m) return '<pre><code>' + esc(pre[m[1]]) + '</code></pre>';
+    if (/^#{1,3} /.test(p)) return '<h3>' + inline(p.replace(/^#{1,3} /, '')) + '</h3>';
+    const L = p.split('\n');
+    if (L.every(l => /^\s*[-*•] /.test(l))) return '<ul>' + L.map(l => '<li>' + inline(l.replace(/^\s*[-*•] /, '')) + '</li>').join('') + '</ul>';
+    if (L.every(l => /^\s*\d+[.)] /.test(l))) return '<ol>' + L.map(l => '<li>' + inline(l.replace(/^\s*\d+[.)] /, '')) + '</li>').join('') + '</ol>';
+    return '<p>' + inline(p).replace(/\n/g, '<br>') + '</p>';
+  }).join('');
+}
+
+/* ---------- Messages ---------- */
+function addMessage(m) {
+  const d = document.createElement('div');
+  if (m.role === 'user') {
+    d.className = 'msg user';
+    const b = document.createElement('div'); b.className = 'bubble'; b.textContent = m.content;
+    d.appendChild(b);
+  } else {
+    d.className = 'msg bot';
+    let html = md(m.content);
+    if (/\bRAGE\b/.test(m.content)) html = '<div class="rage"><span class="rage-tag">🔥 Mode Solvex Rage activé</span>' + html + '</div>';
+    d.innerHTML = '<div class="logo sm">S</div><div class="body"><div class="content">' + html + '</div><div class="actions"><button class="copy">Copier</button></div></div>';
+    d.querySelector('.copy').onclick = function () {
+      const btn = this;
+      const done = () => { btn.textContent = 'Copié ✓'; setTimeout(() => btn.textContent = 'Copier', 1600); };
+      if (navigator.clipboard) navigator.clipboard.writeText(m.content).then(done, done); else done();
+    };
+  }
+  messagesEl.appendChild(d);
+  return d;
+}
+function addTyping() {
+  const d = document.createElement('div'); d.className = 'msg bot';
+  d.innerHTML = '<div class="logo sm">S</div><div class="body"><div class="dots"><i></i><i></i><i></i></div></div>';
+  messagesEl.appendChild(d); scrollDown(); return d;
+}
+function addError(text) {
+  const d = document.createElement('div'); d.className = 'msg bot err';
+  d.innerHTML = '<div class="logo sm">S</div><div class="body"><div class="content"></div></div>';
+  d.querySelector('.content').textContent = text;
+  messagesEl.appendChild(d); scrollDown();
+}
+const scrollDown = () => { chatEl.scrollTop = chatEl.scrollHeight; };
+
+function renderAll() {
+  const c = current();
+  messagesEl.innerHTML = '';
+  if (c) c.messages.forEach(addMessage);
+  $('#welcome').style.display = (c && c.messages.length) ? 'none' : 'flex';
+  messagesEl.style.display = (c && c.messages.length) ? 'block' : 'none';
+  renderList(); scrollDown();
+}
+function renderList() {
+  const list = $('#list'); list.innerHTML = '';
+  if (!chats.length) { list.innerHTML = '<div class="empty-list">Aucune discussion pour l’instant.</div>'; return; }
+  [...chats].sort((a, b) => b.updated - a.updated).forEach(c => {
+    const it = document.createElement('div');
+    it.className = 'item' + (c.id === activeId ? ' active' : '');
+    it.innerHTML = '<span class="t"></span><button class="del" aria-label="Supprimer la discussion" title="Supprimer">✕</button>';
+    it.querySelector('.t').textContent = c.title;
+    it.onclick = () => { activeId = c.id; save(); renderAll(); closeMenu(); };
+    it.querySelector('.del').onclick = e => {
+      e.stopPropagation();
+      if (!confirm('Supprimer cette discussion ?')) return;
+      chats = chats.filter(x => x.id !== c.id);
+      if (activeId === c.id) activeId = null;
+      save(); renderAll();
+    };
+    list.appendChild(it);
+  });
+}
+
+/* ---------- Envoi (logique réseau) ---------- */
+async function send(text) {
+  text = (text || '').trim();
+  if (!text || busy) return;
+  let c = current();
+  if (!c) {
+    c = { id: Date.now().toString(36), title: text.length > 40 ? text.slice(0, 40) + '…' : text, messages: [], updated: Date.now() };
+    chats.unshift(c); activeId = c.id;
+  }
+  c.messages.push({ role: 'user', content: text });
+  c.updated = Date.now(); save();
+  input.value = ''; resize(); renderAll();
+  setBusy(true);
+  addTyping();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ history: c.messages.map(({ role, content }) => ({ role, content })) })
     });
-  </script>
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    c.messages.push({ role: 'assistant', content: String(data.reply ?? '') });
+    c.updated = Date.now(); save();
+    if (activeId === c.id) renderAll(); else renderList();
+  } catch (e) {
+    if (activeId === c.id) { renderAll(); addError('Solvex n’a pas pu répondre. Vérifie ta connexion ou le serveur, puis réessaie.'); }
+  }
+  setBusy(false);
+  input.focus();
+}
+function setBusy(b) { busy = b; sendBtn.disabled = b || !input.value.trim(); }
+
+/* ---------- Interface ---------- */
+function resize() {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 200) + 'px';
+  sendBtn.disabled = busy || !input.value.trim();
+}
+input.addEventListener('input', resize);
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(input.value); }
+});
+sendBtn.onclick = () => send(input.value);
+document.querySelectorAll('.card').forEach(b => b.onclick = () => send(b.dataset.q));
+$('#newChat').onclick = () => { activeId = null; save(); renderAll(); closeMenu(); input.focus(); };
+const closeMenu = () => document.body.classList.remove('open');
+$('#menuBtn').onclick = () => document.body.classList.toggle('open');
+$('#overlay').onclick = closeMenu;
+
+load(); renderAll();
+</script>
 </body>
 </html>
