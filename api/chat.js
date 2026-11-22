@@ -1,6 +1,10 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ reply: "Méthode non autorisée" });
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
   }
 
   const apiKey = (process.env.GROQ_API_KEY || "").trim();
@@ -9,15 +13,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const bodyData = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-    const history = bodyData?.history || [];
+    const bodyData = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
+    const history = bodyData.history || [{ role: "user", content: "Salut" }];
 
     const response = await fetch("https://groq.com", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "User-Agent": "Solvex-AI/1.0"
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
@@ -36,14 +39,9 @@ export default async function handler(req, res) {
       })
     });
 
-    const rawText = await response.text();
-    if (!rawText) {
-      return res.status(200).json({ reply: `Groq a renvoyé une réponse vide (Code HTTP ${response.status}). Vérifie ta clé API.` });
-    }
-
-    const data = JSON.parse(rawText);
+    const data = await response.json();
     if (!response.ok) {
-      return res.status(200).json({ reply: "Erreur Groq : " + (data.error?.message || response.status) });
+      return res.status(200).json({ reply: "Erreur Groq (" + response.status + ") : " + (data.error?.message || "Clé invalide") });
     }
 
     const choix = data.choices.at(0);
