@@ -1,15 +1,23 @@
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Méthode non autorisée" });
+    return res.status(405).json({ reply: "Méthode non autorisée" });
+  }
+
+  const apiKey = (process.env.GROQ_API_KEY || "").trim();
+  if (!apiKey) {
+    return res.status(200).json({ reply: "Clé GROQ_API_KEY manquante sur Vercel !" });
   }
 
   try {
-    const { history } = req.body;
+    const bodyData = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const history = bodyData?.history || [];
+
     const response = await fetch("https://groq.com", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-        "Content-Type": "application/json"
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": "Solvex-AI/1.0"
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
@@ -28,13 +36,19 @@ export default async function handler(req, res) {
       })
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      return res.status(200).json({ reply: "Erreur API Groq : " + (data.error?.message || "Clé invalide") });
+    const rawText = await response.text();
+    if (!rawText) {
+      return res.status(200).json({ reply: `Groq a renvoyé une réponse vide (Code HTTP ${response.status}). Vérifie ta clé API.` });
     }
+
+    const data = JSON.parse(rawText);
+    if (!response.ok) {
+      return res.status(200).json({ reply: "Erreur Groq : " + (data.error?.message || response.status) });
+    }
+
     const choix = data.choices.at(0);
-    res.status(200).json({ reply: choix.message.content });
+    return res.status(200).json({ reply: choix.message.content });
   } catch (error) {
-    res.status(500).json({ reply: "Erreur du serveur : " + error.message });
+    return res.status(200).json({ reply: "Détail erreur : " + error.message });
   }
 }
