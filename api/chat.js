@@ -29,8 +29,12 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    res.status(200).json({ reply: data.choices.message.content });
+    if (!response.ok) {
+      return res.status(200).json({ reply: "Erreur API Groq : " + (data.error?.message || "Clé invalide") });
+    }
+    const choix = data.choices.at(0);
+    res.status(200).json({ reply: choix.message.content });
   } catch (error) {
-    res.status(500).json({ error: "Erreur du serveur Groq" });
+    res.status(500).json({ reply: "Erreur du serveur : " + error.message });
   }
 }
